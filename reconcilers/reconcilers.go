@@ -407,6 +407,11 @@ type ChildReconciler struct {
 	// +optional
 	Sanitize interface{}
 
+	// Force take ownership of the child resource. This is useful when the child
+	// resource is created by a different controller and the controller wants to
+	// take ownership of the child resource.
+	TakeOwnership bool
+
 	Config
 
 	// mutationCache holds patches received from updates to a resource made by
@@ -658,12 +663,22 @@ func (r *ChildReconciler) reconcile(ctx context.Context, parent client.Object) (
 	current := actual.DeepCopyObject().(client.Object)
 	r.mergeBeforeUpdate(current, desiredPatched)
 	r.Log.Info("reconciling child", "diff", cmp.Diff(r.sanitize(actual), r.sanitize(current)))
-	if err := r.Patch(ctx, current, client.MergeFrom(current), client.FieldOwner(parent.GetUID()), client.ForceOwnership); err != nil {
-		r.Log.Error(err, "unable to patch child", typeName(r.ChildType), r.sanitize(current))
-		r.Recorder.Eventf(parent, corev1.EventTypeWarning, "PatchFailed",
-			"Failed to patch %s %q: %v", typeName(r.ChildType), current.GetName(), err)
-		return nil, err
+	if r.TakeOwnership && !metav1.IsControlledBy(current, parent) {
+		if err := r.Patch(ctx, current, client.MergeFrom(current), client.FieldOwner(parent.GetUID()), client.ForceOwnership); err != nil {
+			r.Log.Error(err, "unable to patch child", typeName(r.ChildType), r.sanitize(current))
+			r.Recorder.Eventf(parent, corev1.EventTypeWarning, "PatchFailed",
+				"Failed to patch %s %q: %v", typeName(r.ChildType), current.GetName(), err)
+			return nil, err
+		}
+	} else {
+		if err := r.Update(ctx, current); err != nil {
+			r.Log.Error(err, "unable to update child", typeName(r.ChildType), r.sanitize(current))
+			r.Recorder.Eventf(parent, corev1.EventTypeWarning, "UpdateFailed",
+				"Failed to update %s %q: %v", typeName(r.ChildType), current.GetName(), err)
+			return nil, err
+		}
 	}
+
 	if r.semanticEquals(desired, current) {
 		r.mutationCache.Delete(current.GetUID())
 	} else {
