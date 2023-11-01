@@ -666,6 +666,7 @@ func (r *ChildReconciler) reconcile(ctx context.Context, parent client.Object) (
 	r.mergeBeforeUpdate(current, desiredPatched)
 	r.Log.Info("reconciling child", "diff", cmp.Diff(r.sanitize(actual), r.sanitize(current)))
 	if r.TakeOwnership && !metav1.IsControlledBy(current, parent) {
+		r.Log.Info("taking ownership of child", typeName(r.ChildType), r.sanitize(current))
 		if err := r.Patch(ctx, current, client.MergeFrom(current), client.FieldOwner(parent.GetUID()), client.ForceOwnership); err != nil {
 			r.Log.Error(err, "unable to patch child", typeName(r.ChildType), r.sanitize(current))
 			r.Recorder.Eventf(parent, corev1.EventTypeWarning, "PatchFailed",
