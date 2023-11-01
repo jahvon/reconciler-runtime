@@ -783,17 +783,21 @@ func (r *ChildReconciler) filterChildren(parent client.Object, children client.O
 	childrenValue := reflect.ValueOf(children).Elem()
 	itemsValue := childrenValue.FieldByName("Items")
 	items := []client.Object{}
+	fmt.Println("===== FILTERING =====")
 	for i := 0; i < itemsValue.Len(); i++ {
 		obj := itemsValue.Index(i).Addr().Interface().(client.Object)
+		fmt.Println("Name", obj.GetName())
 		if r.ourChild(parent, obj) {
+			fmt.Println("Our Child")
 			items = append(items, obj)
 		}
+		fmt.Println("=====")
 	}
 	return items
 }
 
 func (r *ChildReconciler) ourChild(parent, obj client.Object) bool {
-	if !metav1.IsControlledBy(obj, parent) && !r.TakeOwnership {
+	if !r.TakeOwnership && !metav1.IsControlledBy(obj, parent) {
 		return false
 	}
 	// TODO do we need to remove resources pending deletion?
