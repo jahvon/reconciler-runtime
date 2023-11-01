@@ -793,7 +793,7 @@ func (r *ChildReconciler) filterChildren(parent client.Object, children client.O
 }
 
 func (r *ChildReconciler) ourChild(parent, obj client.Object) bool {
-	if !metav1.IsControlledBy(obj, parent) {
+	if !metav1.IsControlledBy(obj, parent) && !r.TakeOwnership {
 		return false
 	}
 	// TODO do we need to remove resources pending deletion?
