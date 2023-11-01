@@ -577,6 +577,7 @@ func (r *ChildReconciler) reconcile(ctx context.Context, parent client.Object) (
 	if err := r.List(ctx, children, client.InNamespace(parent.GetNamespace())); err != nil {
 		return nil, err
 	}
+	r.Log.Info("children %s", children.GetRemainingItemCount())
 	items := r.filterChildren(parent, children)
 	if len(items) == 1 {
 		actual = items[0]
@@ -628,6 +629,7 @@ func (r *ChildReconciler) reconcile(ctx context.Context, parent client.Object) (
 
 	// create child if it doesn't exist
 	if actual.GetName() == "" {
+		r.Log.Info("actual %v", actual)
 		r.Log.Info("creating child", typeName(r.ChildType), r.sanitize(desired))
 		if err := r.Create(ctx, desired); err != nil {
 			r.Log.Error(err, "unable to create child", typeName(r.ChildType), r.sanitize(desired))
