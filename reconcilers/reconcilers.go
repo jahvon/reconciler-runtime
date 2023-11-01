@@ -629,7 +629,7 @@ func (r *ChildReconciler) reconcile(ctx context.Context, parent client.Object) (
 
 	// create child if it doesn't exist
 	if actual.GetName() == "" {
-		r.Log.Info("actual %v", actual)
+		r.Log.Info("actual", "evaluating", r.sanitize(actual))
 		r.Log.Info("creating child", typeName(r.ChildType), r.sanitize(desired))
 		if err := r.Create(ctx, desired); err != nil {
 			r.Log.Error(err, "unable to create child", typeName(r.ChildType), r.sanitize(desired))
