@@ -658,10 +658,10 @@ func (r *ChildReconciler) reconcile(ctx context.Context, parent client.Object) (
 	current := actual.DeepCopyObject().(client.Object)
 	r.mergeBeforeUpdate(current, desiredPatched)
 	r.Log.Info("reconciling child", "diff", cmp.Diff(r.sanitize(actual), r.sanitize(current)))
-	if err := r.Patch(ctx, current, client.MergeFrom(actual), client.FieldOwner(parent.GetUID()), client.ForceOwnership); err != nil {
-		r.Log.Error(err, "unable to patch child", typeName(r.ChildType), r.sanitize(actual))
+	if err := r.Patch(ctx, current, client.MergeFrom(current), client.FieldOwner(parent.GetUID()), client.ForceOwnership); err != nil {
+		r.Log.Error(err, "unable to patch child", typeName(r.ChildType), r.sanitize(current))
 		r.Recorder.Eventf(parent, corev1.EventTypeWarning, "PatchFailed",
-			"Failed to patch %s %q: %v", typeName(r.ChildType), actual.GetName(), err)
+			"Failed to patch %s %q: %v", typeName(r.ChildType), current.GetName(), err)
 		return nil, err
 	}
 	if r.semanticEquals(desired, current) {
