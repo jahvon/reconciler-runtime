@@ -788,7 +788,7 @@ func (r *ChildReconciler) filterChildren(parent client.Object, children client.O
 	r.Log.Info("===== FILTERING =====")
 	for i := 0; i < itemsValue.Len(); i++ {
 		obj := itemsValue.Index(i).Addr().Interface().(client.Object)
-		r.Log.Info("Name", obj.GetName())
+		r.Log.Info("Name %s", obj.GetName())
 		if r.ourChild(parent, obj) {
 			r.Log.Info("Our Child")
 			items = append(items, obj)
