@@ -577,7 +577,7 @@ func (r *ChildReconciler) reconcile(ctx context.Context, parent client.Object) (
 	if err := r.List(ctx, children, client.InNamespace(parent.GetNamespace())); err != nil {
 		return nil, err
 	}
-	r.Log.Info("children %s", children.GetRemainingItemCount())
+	r.Log.Info("children", "num", children.GetRemainingItemCount())
 	items := r.filterChildren(parent, children)
 	if len(items) == 1 {
 		actual = items[0]
@@ -789,7 +789,7 @@ func (r *ChildReconciler) filterChildren(parent client.Object, children client.O
 	r.Log.Info("===== FILTERING =====")
 	for i := 0; i < itemsValue.Len(); i++ {
 		obj := itemsValue.Index(i).Addr().Interface().(client.Object)
-		r.Log.Info("Name %s", obj.GetName())
+		r.Log.Info("Current object", "name", obj.GetName())
 		if r.ourChild(parent, obj) {
 			r.Log.Info("Our Child")
 			items = append(items, obj)
