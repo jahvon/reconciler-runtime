@@ -783,15 +783,15 @@ func (r *ChildReconciler) filterChildren(parent client.Object, children client.O
 	childrenValue := reflect.ValueOf(children).Elem()
 	itemsValue := childrenValue.FieldByName("Items")
 	items := []client.Object{}
-	fmt.Println("===== FILTERING =====")
+	r.Log.Info("===== FILTERING =====")
 	for i := 0; i < itemsValue.Len(); i++ {
 		obj := itemsValue.Index(i).Addr().Interface().(client.Object)
-		fmt.Println("Name", obj.GetName())
+		r.Log.Info("Name", obj.GetName())
 		if r.ourChild(parent, obj) {
-			fmt.Println("Our Child")
+			r.Log.Info("Our Child")
 			items = append(items, obj)
 		}
-		fmt.Println("=====")
+		r.Log.Info("=====")
 	}
 	return items
 }
